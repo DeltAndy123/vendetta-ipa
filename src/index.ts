@@ -1,10 +1,15 @@
 import { existsSync, rmSync } from "fs";
 import { join } from "path";
-import { spawn } from "child_process";
+import { exec as _exec, spawn } from "child_process";
+import { promisify } from "util";
 import express from "express";
 import { Octokit } from "octokit";
 import { config } from "dotenv";
 config();
+
+const exec = promisify(_exec);
+
+let latestVersion = "0.0";
 
 const app = express();
 
@@ -23,13 +28,7 @@ if (!existsSync(join(baseDir, "install.sh"))) {
 }
 
 function spawnAndLog(command: string, ...args: string[]) {
-  const child = spawn(command, [...args], { cwd: baseDir });
-  child.stdout.on("data", (data) => {
-    console.log(data.toString());
-  });
-  child.stderr.on("data", (data) => {
-    console.error(data.toString());
-  });
+  const child = spawn(command, [...args], { cwd: baseDir, stdio: "inherit" });
   return new Promise<void>((resolve, reject) => {
     child.on("close", (code) => {
       if (code === 0) {
@@ -56,12 +55,29 @@ app.use("/done", (req, res) => {
   rmSync(join(baseDir, "discord.ipa"));
 });
 
-async function main() {
+async function dumpApp() {
   // Run install.sh
-  await spawnAndLog("bash", "install.sh");
+
+  console.log("Uninstalling old app...");
+  await spawnAndLog("ideviceinstaller", "-U", "com.hammerandchisel.discord");
+
+  console.log("Downloading app...");
+  await spawnAndLog(
+    "ipatool",
+    "download",
+    "-b",
+    "com.hammerandchisel.discord",
+    "-o",
+    "discord.ipa"
+  );
+
+  console.log("Installing app...");
+  await spawnAndLog("ideviceinstaller", "-i", "discord.ipa");
+
+  console.log("Cleaning up...");
+  rmSync(join(baseDir, "discord.ipa"));
 
   console.log("Dumping app...");
-
   await spawnAndLog(
     "python3",
     "dump.py",
@@ -90,8 +106,29 @@ async function main() {
     ref: "master",
     inputs: {
       ipa: process.env.SERVER_HOST,
+      version: latestVersion,
     },
   });
 }
 
-main();
+async function checkForUpdates() {
+  const data = await exec('ipatool search "Discord - Chat, Talk"');
+
+  const versionNumber = data.stdout.match(/(?<=version":")[\d\.]+/)?.[0];
+
+  if (versionNumber && versionNumber !== latestVersion) {
+    if (latestVersion == "0.0") {
+      latestVersion = versionNumber;
+      return;
+    }
+    latestVersion = versionNumber;
+
+    console.log("New version found:", versionNumber);
+
+    await dumpApp();
+  }
+}
+
+checkForUpdates();
+
+setInterval(checkForUpdates, 1000 * 60);
