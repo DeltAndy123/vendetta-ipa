@@ -65,10 +65,10 @@ jobs:
 
       - name: Notify webhook
         run: |
-          curl \
-            -F "payload_json={\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}" \
-            # -F "file=@out/Vendetta.ipa" \
-            ${{ secrets.WEBHOOK_URL }}
+          curl \ 
+          -H "Content-Type: application/json" \
+          -d "{\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}" \
+          ${{ secrets.WEBHOOK_URL }}
 
       - name: Upload IPA
         uses: actions/upload-artifact@v3
