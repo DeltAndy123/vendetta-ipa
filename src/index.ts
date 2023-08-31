@@ -14,6 +14,8 @@ let latestVersion = "0.0";
 let isDumping = false;
 let server: Server<typeof IncomingMessage, typeof ServerResponse>;
 
+if (process.env.IS_TEST) latestVersion = "1.0";
+
 const app = express();
 
 const github = new Octokit({
@@ -119,7 +121,7 @@ async function checkForUpdates() {
   const versionNumber = data.stdout.match(/(?<=version":")[\d\.]+/)?.[0];
 
   if (versionNumber && versionNumber !== latestVersion) {
-    if (latestVersion == "0.01") {
+    if (latestVersion == "0.0") {
       latestVersion = versionNumber;
       return;
     }
