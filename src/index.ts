@@ -94,6 +94,8 @@ async function dumpApp() {
   );
 
   console.log("Dumping finished");
+  console.log("Uninstalling app...");
+  spawnAndLog("ideviceinstaller", "-U", "com.hammerandchisel.discord");
   console.log("Serving file...");
 
   console.log("Starting server...");
