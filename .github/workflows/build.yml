@@ -1,0 +1,77 @@
+on:
+  workflow_dispatch:
+    inputs:
+      ipa:
+        description: "IPA to use"
+        required: true
+      version:
+        description: "Version to report"
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+
+      - name: Get ipa
+        run: |
+          curl -L -o discord.ipa ${{ inputs.ipa }}/discord.ipa
+
+      - name: Report done downloading
+        run: |
+          curl ${{ github.event.inputs.ipa }}/done
+
+      - name: Clone Azule
+        run: |
+          git clone https://github.com/Al4ise/Azule ${{ github.workspace }}/Azule
+          cd ${{ github.workspace }}/Azule
+          git checkout 27c02b415cff15b1c131a0e95bcc2438023f86da
+
+      - name: Fetch Tweak
+        run: |
+          curl -L -o tweak.zip https://nightly.link/vendetta-mod/VendettaTweak/workflows/build/main/Package%20built%20by%20macos-latest.zip
+          unzip tweak.zip
+          mv *.deb tweak.deb
+          rm tweak.zip
+
+      - name: Fetch Orion
+        run: |
+          mkdir orion
+          cd orion
+          curl -L -o orion.zip https://github.com/theos/orion/releases/download/1.0.1/Orion_1.0.1.zip
+          unzip orion.zip
+          mv dev.theos.orion14*-arm.deb ../orion.deb
+          cd ..
+          rm -rf orion
+
+      - name: Fetch sideload fix
+        run: |
+          curl -L -o sideloadfix.deb https://github.com/m4fn3/DiscordSideloadFix/releases/download/v1.0.0/com.m4fn3.discord-sideload-fix_1.0.0_iphoneos-arm.deb
+
+      - name: Rename Discord IPA
+        run: |
+          python3 ./patch-ipa.py
+
+      - name: Install Vendetta
+        run: |
+          mkdir out
+          ${{ github.workspace }}/Azule/azule -U -i renamed.ipa -c ${{ inputs.version }} -b dev.beefers.vendetta -f 'tweak.deb' 'orion.deb' 'sideloadfix.deb' -o out -n Vendetta
+
+      - name: Notify webhook
+        run: |
+          curl \
+            -F "payload_json={\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}" \
+            # -F "file=@out/Vendetta.ipa" \
+            ${{ secrets.WEBHOOK_URL }}
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: Vendetta.ipa
+          path: out/Vendetta.ipa

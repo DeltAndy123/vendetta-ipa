@@ -5,11 +5,14 @@ import { promisify } from "util";
 import express from "express";
 import { Octokit } from "octokit";
 import { config } from "dotenv";
+import { IncomingMessage, Server, ServerResponse } from "http";
 config();
 
 const exec = promisify(_exec);
 
 let latestVersion = "0.0";
+let isDumping = false;
+let server: Server<typeof IncomingMessage, typeof ServerResponse>;
 
 const app = express();
 
@@ -40,8 +43,6 @@ function spawnAndLog(command: string, ...args: string[]) {
   });
 }
 
-let server: any;
-
 app.use("/discord.ipa", (req, res) => {
   console.log("Serving file...");
   res.sendFile(join(baseDir, "discord.ipa"));
@@ -56,7 +57,7 @@ app.use("/done", (req, res) => {
 });
 
 async function dumpApp() {
-  // Run install.sh
+  isDumping = true;
 
   console.log("Uninstalling old app...");
   await spawnAndLog("ideviceinstaller", "-U", "com.hammerandchisel.discord");
@@ -109,6 +110,7 @@ async function dumpApp() {
       version: latestVersion,
     },
   });
+  isDumping = false;
 }
 
 async function checkForUpdates() {
@@ -117,10 +119,11 @@ async function checkForUpdates() {
   const versionNumber = data.stdout.match(/(?<=version":")[\d\.]+/)?.[0];
 
   if (versionNumber && versionNumber !== latestVersion) {
-    if (latestVersion == "0.0") {
+    if (latestVersion == "0.01") {
       latestVersion = versionNumber;
       return;
     }
+    if (isDumping) return console.log("Already dumping");
     latestVersion = versionNumber;
 
     console.log("New version found:", versionNumber);
