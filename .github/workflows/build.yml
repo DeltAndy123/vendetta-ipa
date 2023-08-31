@@ -67,7 +67,7 @@ jobs:
         run: |
           curl \
           -H "Content-Type: application/json" \
-          -d "{\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}" \
+          -d "{\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\", \"color\": 6403513}]}" \
           ${{ secrets.WEBHOOK_URL }}
 
       - name: Upload IPA
