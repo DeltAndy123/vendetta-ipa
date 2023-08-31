@@ -6,6 +6,7 @@ frida/
 
 node_modules
 out
+dist
 .env
 *.deb
 workspace/
