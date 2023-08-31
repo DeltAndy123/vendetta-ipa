@@ -23,8 +23,8 @@ const github = new Octokit({
 });
 
 let baseDir = process.cwd();
-if (!existsSync(join(baseDir, "install.sh"))) {
-  if (existsSync(join(baseDir, "../", "install.sh"))) {
+if (!existsSync(join(baseDir, "dump.py"))) {
+  if (existsSync(join(baseDir, "../", "dump.py"))) {
     baseDir = join(baseDir, "../");
   } else {
     console.error("install.sh not found");
