@@ -65,7 +65,7 @@ jobs:
 
       - name: Notify webhook
         run: |
-          curl \ 
+          curl \
           -H "Content-Type: application/json" \
           -d "{\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}" \
           ${{ secrets.WEBHOOK_URL }}
