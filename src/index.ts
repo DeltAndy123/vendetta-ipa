@@ -71,7 +71,9 @@ async function dumpApp() {
     "-b",
     "com.hammerandchisel.discord",
     "-o",
-    "discord.ipa"
+    "discord.ipa",
+    process.env.PASSPHRASE ? "--keychain-passphrase" : "",
+    process.env.PASSPHRASE ? process.env.PASSPHRASE : ""
   );
 
   console.log("Installing app...");
@@ -118,7 +120,13 @@ async function dumpApp() {
 }
 
 async function checkForUpdates() {
-  const data = await exec('ipatool search "Discord - Chat, Talk"');
+  const data = await exec(
+    `ipatool search "Discord - Chat, Talk"${
+      process.env.PASSPHRASE
+        ? ` --keychain-passphrase ${process.env.PASSPHRASE}`
+        : ""
+    }`
+  );
 
   const versionNumber = data.stdout.match(/(?<=version":")[\d\.]+/)?.[0];
 
