@@ -4,9 +4,6 @@ on:
       ipa:
         description: "IPA to use"
         required: true
-      version:
-        description: "Version to report"
-        required: true
 
 jobs:
   build:
@@ -61,14 +58,7 @@ jobs:
       - name: Install Vendetta
         run: |
           mkdir out
-          ${{ github.workspace }}/Azule/azule -U -i renamed.ipa -c ${{ inputs.version }} -b dev.beefers.vendetta -f 'tweak.deb' 'orion.deb' 'sideloadfix.deb' -o out -n Vendetta
-
-      - name: Notify webhook
-        run: |
-          curl \
-          -H "Content-Type: application/json" \
-          -d "{\"embeds\": [{\"title\": \"Vendetta build complete\", \"description\": \"Version ${{ inputs.version }} has been released\", \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\", \"color\": 6403513}]}" \
-          ${{ secrets.WEBHOOK_URL }}
+          ${{ github.workspace }}/Azule/azule -U -i renamed.ipa -b dev.beefers.vendetta -f 'tweak.deb' 'orion.deb' 'sideloadfix.deb' -o out -n Vendetta
 
       - name: Upload IPA
         uses: actions/upload-artifact@v3
