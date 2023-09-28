@@ -18,7 +18,7 @@ jobs:
 
       - name: Get ipa
         run: |
-          curl -L -o discord.ipa ${{ inputs.ipa }}/discord.ipa
+          curl -L -o discord.ipa ${{ inputs.ipa }}
 
       - name: Report done downloading
         run: |
