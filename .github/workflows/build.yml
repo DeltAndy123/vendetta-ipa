@@ -58,7 +58,7 @@ jobs:
       - name: Install Vendetta
         run: |
           mkdir out
-          ${{ github.workspace }}/Azule/azule -U -i renamed.ipa -b dev.beefers.vendetta -f 'tweak.deb' 'orion.deb' 'sideloadfix.deb' -o out -n Vendetta
+          ${{ github.workspace }}/Azule/azule -U -i renamed.ipa -f 'tweak.deb' 'orion.deb' 'sideloadfix.deb' -o out -n Vendetta
 
       - name: Upload IPA
         uses: actions/upload-artifact@v3
